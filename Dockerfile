@@ -65,6 +65,7 @@ RUN npm install -g clawhub mcporter @anthropic-ai/claude-code rolldown
 # -----------------------------------------------------------------------------
 RUN mkdir -p /home/node/.openclaw/workspace/skills
 COPY workspace/skills/clawvox /home/node/.openclaw/workspace/skills/clawvox
+COPY workspace/skills/comfyui /home/node/.openclaw/workspace/skills/comfyui
 
 # -----------------------------------------------------------------------------
 # 5b. Unity MCP bridge server (connects to Unity Editor on host via WebSocket)

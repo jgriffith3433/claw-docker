@@ -13,12 +13,15 @@ services:
       UNITY_MCP_HOST: ${UNITY_MCP_HOST:-host.docker.internal}
       UNITY_MCP_PORT: ${UNITY_MCP_PORT:-8090}
       ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      COMFYUI_HOST: ${COMFYUI_HOST:-host.docker.internal}
+      COMFYUI_PORT: ${COMFYUI_PORT:-8188}
     volumes:
       - openclaw-data:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace
       - ${UNITY_PROJECT_PATH:-C:/Projects/sickofitgame-unity}:/home/node/.openclaw/workspace/sickofitgame-unity
       - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
       - ${CLAW_DOCKER_PATH:-C:/Projects/claw-docker}:/home/node/.openclaw/workspace/claw-docker
+      - ${COMFYUI_DOCKER_PATH:-C:/Projects/comfyui-docker}:/home/node/.openclaw/workspace/comfyui-docker
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
@@ -38,12 +41,15 @@ services:
       GITHUB_PERSONAL_ACCESS_TOKEN: ${GITHUB_PERSONAL_ACCESS_TOKEN:-}
       GIT_LFS_SKIP_SMUDGE: ${GIT_LFS_SKIP_SMUDGE:-1}
       BROWSER: echo
+      COMFYUI_HOST: ${COMFYUI_HOST:-host.docker.internal}
+      COMFYUI_PORT: ${COMFYUI_PORT:-8188}
     volumes:
       - openclaw-data:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace
       - ${UNITY_PROJECT_PATH:-C:/Projects/sickofitgame-unity}:/home/node/.openclaw/workspace/sickofitgame-unity
       - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
       - ${CLAW_DOCKER_PATH:-C:/Projects/claw-docker}:/home/node/.openclaw/workspace/claw-docker
+      - ${COMFYUI_DOCKER_PATH:-C:/Projects/comfyui-docker}:/home/node/.openclaw/workspace/comfyui-docker
     stdin_open: true
     tty: true
     init: true
