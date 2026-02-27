@@ -1,0 +1,11 @@
+# =============================================================================
+# OpenClaw - Production Build (for pushing to Docker Hub)
+# Used locally on Windows to build and push the image.
+# =============================================================================
+services:
+  openclaw-gateway:
+    image: jgriffith3433/claw-docker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: openclaw-prod

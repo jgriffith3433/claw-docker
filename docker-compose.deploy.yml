@@ -1,0 +1,33 @@
+# =============================================================================
+# OpenClaw - Deployment (lives on the EC2 server)
+# Pulled from Docker Hub, no build context needed.
+# =============================================================================
+services:
+  openclaw-gateway:
+    image: jgriffith3433/claw-docker:latest
+    container_name: openclaw
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${GITHUB_PERSONAL_ACCESS_TOKEN:-}
+      GIT_LFS_SKIP_SMUDGE: ${GIT_LFS_SKIP_SMUDGE:-1}
+    volumes:
+      - openclaw-data:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace
+    ports:
+      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
+      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
+    init: true
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:18789').then(r=>{if(!r.ok)throw 1})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  openclaw-data:

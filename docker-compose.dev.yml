@@ -1,0 +1,50 @@
+services:
+  openclaw-gateway:
+    build: .
+    image: jgriffith3433/claw-docker:local
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${GITHUB_PERSONAL_ACCESS_TOKEN:-}
+      GIT_LFS_SKIP_SMUDGE: ${GIT_LFS_SKIP_SMUDGE:-1}
+      UNITY_MCP_HOST: ${UNITY_MCP_HOST:-host.docker.internal}
+      UNITY_MCP_PORT: ${UNITY_MCP_PORT:-8090}
+    volumes:
+      - openclaw-data:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace
+      - ${UNITY_PROJECT_PATH:-C:/Projects/sickofitgame-unity}:/home/node/.openclaw/workspace/sickofitgame-unity
+      - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
+    ports:
+      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
+      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    init: true
+    restart: unless-stopped
+
+  openclaw-cli:
+    image: jgriffith3433/claw-docker:local
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${GITHUB_PERSONAL_ACCESS_TOKEN:-}
+      GIT_LFS_SKIP_SMUDGE: ${GIT_LFS_SKIP_SMUDGE:-1}
+      BROWSER: echo
+    volumes:
+      - openclaw-data:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace
+      - ${UNITY_PROJECT_PATH:-C:/Projects/sickofitgame-unity}:/home/node/.openclaw/workspace/sickofitgame-unity
+      - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
+    stdin_open: true
+    tty: true
+    init: true
+    entrypoint: ["/opt/openclaw/docker-entrypoint.sh", "node", "dist/index.js"]
+
+volumes:
+  openclaw-data:

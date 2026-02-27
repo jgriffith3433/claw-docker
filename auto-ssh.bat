@@ -1,0 +1,3 @@
+@echo off
+echo Connecting to OpenClaw EC2 server...
+ssh -i claw-server-key-server-key.pem ec2-user@18.206.220.35

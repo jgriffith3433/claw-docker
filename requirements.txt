@@ -1,0 +1,12 @@
+# OpenClaw Docker - Python dependencies
+# Used by Dockerfile during image build
+
+# Image processing
+rembg[cpu]          # AI background removal
+Pillow              # Image manipulation (sprite sheets, resize, etc.)
+
+# Video tools
+yt-dlp              # Download videos from YouTube/Vimeo/etc.
+
+# Python package management
+uv                  # Fast Python package installer (used by some skills)
