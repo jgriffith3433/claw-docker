@@ -1,5 +1,7 @@
 .env
 workspace/*
 !workspace/*.md
+!workspace/skills/
+!workspace/memory/
 *.log
 *.pem

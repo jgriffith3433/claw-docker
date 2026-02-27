@@ -60,6 +60,13 @@ RUN curl -fsSL https://github.com/github/github-mcp-server/releases/latest/downl
 RUN npm install -g clawhub mcporter @anthropic-ai/claude-code rolldown
 
 # -----------------------------------------------------------------------------
+# 5a. ClawHub skills — pre-install so they're baked into the image
+#     Copied from local workspace to avoid clawhub rate limits.
+# -----------------------------------------------------------------------------
+RUN mkdir -p /home/node/.openclaw/workspace/skills
+COPY workspace/skills/clawvox /home/node/.openclaw/workspace/skills/clawvox
+
+# -----------------------------------------------------------------------------
 # 5b. Unity MCP bridge server (connects to Unity Editor on host via WebSocket)
 # Enables: scene manipulation, build triggering, console log reading, etc.
 # Unity Editor must be running with the mcp-unity package installed.

@@ -12,11 +12,13 @@ services:
       GIT_LFS_SKIP_SMUDGE: ${GIT_LFS_SKIP_SMUDGE:-1}
       UNITY_MCP_HOST: ${UNITY_MCP_HOST:-host.docker.internal}
       UNITY_MCP_PORT: ${UNITY_MCP_PORT:-8090}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
     volumes:
       - openclaw-data:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace
       - ${UNITY_PROJECT_PATH:-C:/Projects/sickofitgame-unity}:/home/node/.openclaw/workspace/sickofitgame-unity
       - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
+      - ${CLAW_DOCKER_PATH:-C:/Projects/claw-docker}:/home/node/.openclaw/workspace/claw-docker
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
@@ -41,6 +43,7 @@ services:
       - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace
       - ${UNITY_PROJECT_PATH:-C:/Projects/sickofitgame-unity}:/home/node/.openclaw/workspace/sickofitgame-unity
       - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
+      - ${CLAW_DOCKER_PATH:-C:/Projects/claw-docker}:/home/node/.openclaw/workspace/claw-docker
     stdin_open: true
     tty: true
     init: true
