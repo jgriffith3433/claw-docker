@@ -22,6 +22,9 @@ services:
       - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
       - ${CLAW_DOCKER_PATH:-C:/Projects/claw-docker}:/home/node/.openclaw/workspace/claw-docker
       - ${COMFYUI_DOCKER_PATH:-C:/Projects/comfyui-docker}:/home/node/.openclaw/workspace/comfyui-docker
+      - ${COMFYUI_DATA:-C:/Projects/comfyui-docker/data}/models:/home/node/.openclaw/workspace/comfyui-models
+      - ${COMFYUI_DATA:-C:/Projects/comfyui-docker/data}/output:/home/node/.openclaw/workspace/comfyui-output
+      - ${COMFYUI_DATA:-C:/Projects/comfyui-docker/data}/input:/home/node/.openclaw/workspace/comfyui-input
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
@@ -50,6 +53,9 @@ services:
       - ${WEBSITE_PROJECT_PATH:-C:/Projects/sickofitgame-website}:/home/node/.openclaw/workspace/sickofitgame-website
       - ${CLAW_DOCKER_PATH:-C:/Projects/claw-docker}:/home/node/.openclaw/workspace/claw-docker
       - ${COMFYUI_DOCKER_PATH:-C:/Projects/comfyui-docker}:/home/node/.openclaw/workspace/comfyui-docker
+      - ${COMFYUI_DATA:-C:/Projects/comfyui-docker/data}/models:/home/node/.openclaw/workspace/comfyui-models
+      - ${COMFYUI_DATA:-C:/Projects/comfyui-docker/data}/output:/home/node/.openclaw/workspace/comfyui-output
+      - ${COMFYUI_DATA:-C:/Projects/comfyui-docker/data}/input:/home/node/.openclaw/workspace/comfyui-input
     stdin_open: true
     tty: true
     init: true

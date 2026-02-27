@@ -2,6 +2,7 @@
 """Queue a ComfyUI workflow (API-format JSON) and poll until done. Prints prompt_id and output images."""
 import argparse
 import json
+import os
 import time
 import uuid
 import urllib.request
@@ -34,8 +35,8 @@ def find_output_images(history_obj):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--host", default="127.0.0.1")
-    ap.add_argument("--port", default="8188")
+    ap.add_argument("--host", default=os.environ.get("COMFYUI_HOST", "127.0.0.1"))
+    ap.add_argument("--port", default=os.environ.get("COMFYUI_PORT", "8188"))
     ap.add_argument("--workflow", required=True, help="Path to API workflow JSON (already edited; script does not modify it)")
     ap.add_argument("--timeout", type=int, default=300, help="Seconds to wait for completion")
     ap.add_argument("--poll", type=float, default=1.5, help="Seconds between history polls")
