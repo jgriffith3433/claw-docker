@@ -1,3 +1,36 @@
 {
-  "servers": {}
+  "servers": {
+    "comfyui-gpu": {
+      "instance_id": "i-031edc38a55aa46d7",
+      "instance_type": "g5.xlarge",
+      "public_ip": "100.30.195.50",
+      "public_dns": "ec2-100-30-195-50.compute-1.amazonaws.com",
+      "region": "us-east-1",
+      "ami": "ami-0669ac5db8b1292fe",
+      "key_pair": "sickofitgame-server",
+      "security_group": "sg-063d27eee16d8f626",
+      "created": "2026-02-28 16:45:00 UTC",
+      "purpose": "comfyui-gpu",
+      "volume_size_gb": 200,
+      "deployed": true,
+      "comfyui_url": "http://100.30.195.50:8188",
+      "gpu": "NVIDIA A10G 24GB",
+      "ram": "16GB + 16GB swap",
+      "notes": "Fresh from-scratch deployment. Swap persists via fstab. T5 auto-downloaded. CogVideoX GGUF auto-downloads on first workflow run."
+    },
+    "docker-build": {
+      "instance_id": "i-081674320ea2f057d",
+      "instance_type": "t3.large",
+      "public_ip": "54.164.231.77",
+      "public_dns": "ec2-54-164-231-77.compute-1.amazonaws.com",
+      "region": "us-east-1",
+      "ami": "ami-0669ac5db8b1292fe",
+      "key_pair": "sickofitgame-server",
+      "security_group": "sg-063d27eee16d8f626",
+      "created": "2026-02-28 05:00:12 UTC",
+      "purpose": "docker-build",
+      "volume_size_gb": 75,
+      "deployed": true
+    }
+  }
 }
