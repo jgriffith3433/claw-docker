@@ -15,6 +15,11 @@ services:
       ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
       COMFYUI_HOST: ${COMFYUI_HOST:-host.docker.internal}
       COMFYUI_PORT: ${COMFYUI_PORT:-8188}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      DOCKER_HUB_TOKEN: ${DOCKER_HUB_TOKEN:-}
+      DOCKER_HUB_USERNAME: ${DOCKER_HUB_USERNAME:-jgriffith3433}
     volumes:
       - openclaw-data:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE:-./workspace}:/home/node/.openclaw/workspace

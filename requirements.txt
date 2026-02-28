@@ -2,7 +2,7 @@
 # Used by Dockerfile during image build
 
 # Image processing
-rembg[cpu]          # AI background removal
+rembg[cpu,cli]      # AI background removal (with CLI support)
 Pillow              # Image manipulation (sprite sheets, resize, etc.)
 
 # Video tools

@@ -26,6 +26,16 @@
 - Daily logs in memory/YYYY-MM-DD.md
 - Long-term notes in this file (MEMORY.md)
 
+## EC2 / Server Management
+- Server manager script: `scripts/server-manager.py`
+- Server state tracked in: `memory/servers.json`
+- PEM key: `sickofitgame-website/sickofitgame-server.pem` (shared across all servers)
+- Existing game server: `ubuntu@ec2-13-220-32-55.compute-1.amazonaws.com` (sickofitgame website)
+- Docker Hub: `jgriffith3433` (private repos)
+- GPU instance types: g4dn.xlarge (T4, $0.53/hr), g5.xlarge (A10G, $1/hr), g6.xlarge (L4, $0.81/hr)
+- Deploy flow: aws ec2 run-instances → ssh → docker login → docker compose up
+- ComfyUI on GPU: yanwk/comfyui-boot:latest with nvidia runtime
+
 ## Skill Installation Convention
 - Install skill live with `clawhub install <name>`
 - Add `COPY workspace/skills/<name> /home/node/.openclaw/workspace/skills/<name>` to Dockerfile

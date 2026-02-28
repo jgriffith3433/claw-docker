@@ -49,6 +49,13 @@ session = new_session('u2net'); \
 print('rembg u2net model cached')"
 
 # -----------------------------------------------------------------------------
+# 3a. AWS CLI v2 — enables: EC2 instance management, deployment automation
+# -----------------------------------------------------------------------------
+RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip && \
+    cd /tmp && unzip -q awscliv2.zip && ./aws/install && \
+    rm -rf /tmp/aws /tmp/awscliv2.zip
+
+# -----------------------------------------------------------------------------
 # 4. GitHub MCP Server (official Go binary) — enables: native GitHub tools
 # -----------------------------------------------------------------------------
 RUN curl -fsSL https://github.com/github/github-mcp-server/releases/latest/download/github-mcp-server_Linux_x86_64.tar.gz \
@@ -64,6 +71,7 @@ RUN npm install -g clawhub mcporter @anthropic-ai/claude-code rolldown
 #     Copied from local workspace to avoid clawhub rate limits.
 # -----------------------------------------------------------------------------
 RUN mkdir -p /home/node/.openclaw/workspace/skills
+COPY workspace/skills/awscli /home/node/.openclaw/workspace/skills/awscli
 COPY workspace/skills/clawvox /home/node/.openclaw/workspace/skills/clawvox
 COPY workspace/skills/comfyui /home/node/.openclaw/workspace/skills/comfyui
 
