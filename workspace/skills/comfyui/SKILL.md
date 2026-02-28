@@ -11,92 +11,97 @@ metadata: {"clawdbot":{"emoji":"🖼️","requires":{"bins":["python3"]}}}
 
 # ComfyUI Runner
 
-## Overview
-Run ComfyUI workflows on the local server (default 127.0.0.1:8188) using API-format JSON and return output images.
+## Architecture
 
-## Editing the workflow before running
-The run script only takes `--workflow <path>`. You must **inspect and edit the workflow JSON** before running, using your best knowledge of the ComfyUI API format. Do not assume fixed node IDs, `class_type` names, or `_meta.title` values — the user may have updated the default workflow or supplied a custom one.
+ComfyUI runs in a **separate Docker container** (comfyui-docker), accessible via HTTP API.
 
-**For every run (including the default workflow):**
-1. Read the workflow JSON (default: `skills/comfyui/assets/default-workflow.json`, or the path/file the user gave).
-2. **Identify prompt-related nodes** by inspecting the graph: look for nodes that hold the main text prompt — e.g. `PrimitiveStringMultiline`, `CLIPTextEncode` (positive text), or any node with `_meta.title` or `class_type` suggesting "Prompt" / "positive" / "text". Update the corresponding input (e.g. `inputs.value`, or the text input to the encoder) to the image prompt you derived from the user (subject, style, lighting, quality). If the user didn’t ask for a custom image, you can leave the existing prompt or tweak only if needed.
-3. **Optionally identify style/prefix nodes** — e.g. `StringConcatenate`, or a second string input that acts as style. Set them if the user asked for a specific style or to clear a default prefix.
-4. **Optionally set a new seed** — find sampler-like nodes (e.g. `KSampler`, `BasicGuider`, or any node with a `seed` input) and set `seed` to a new random integer so each run can differ.
-5. Write the modified workflow to a temp file (e.g. `skills/comfyui/assets/tmp-workflow.json`). Use `~/ComfyUI/venv/bin/python` for any inline Python; do not use bare `python`.
-6. Run: `comfyui_run.py --workflow <path-to-edited-json>`.
+- **API endpoint**: `http://${COMFYUI_HOST}:${COMFYUI_PORT}` (defaults: `host.docker.internal:8188`)
+- **Local (CPU)**: `comfyui-docker/docker-compose.yml` — slow, for testing only
+- **EC2 GPU**: `comfyui-docker/docker-compose.deploy.yml` — g4dn.xlarge (T4 16GB)
+- **Shared volumes** (mounted into both claw-docker and comfyui-docker):
+  - Models: `/home/node/.openclaw/workspace/comfyui-models/`
+  - Output: `/home/node/.openclaw/workspace/comfyui-output/`
+  - Input: `/home/node/.openclaw/workspace/comfyui-input/`
 
-If the workflow structure is unclear or you can’t find prompt/sampler nodes, run the file as-is and only change what you can reliably identify. Same approach for arbitrary user-supplied JSON: inspect first, edit at your best knowledge, then run.
+## Vendored Workflows
 
-## Run script (single responsibility)
+Located in `comfyui-docker/workflows/` (copied into container at build time):
+
+| Workflow | What it does | Models needed |
+|----------|-------------|---------------|
+| `sd15-basic-test.json` | Single image, SD 1.5, 20 steps | `AOM3A1_orangemixs.safetensors` (2.13GB) |
+| `character-concept.json` | Game character concept, 400x400 | Same checkpoint |
+| `character-animate.json` | AnimateDiff 8-frame animation | Same checkpoint + `v3_sd15_mm.ckpt` (1.6GB) |
+
+## Running a Workflow
+
+### 1. Edit the workflow JSON
+Before running, **inspect and edit** the workflow JSON:
+- Find prompt nodes (`CLIPTextEncode`, `PrimitiveStringMultiline`, etc.) and update text
+- Optionally set a new `seed` on sampler nodes (`KSampler`)
+- Save edited version to a temp file
+
+### 2. Run
 ```bash
-~/ComfyUI/venv/bin/python skills/comfyui/scripts/comfyui_run.py \
-  --workflow <path-to-workflow.json>
+python3 skills/comfyui/scripts/comfyui_run.py --workflow <path-to-workflow.json>
 ```
 
-The script only queues the workflow and polls until done. It prints JSON with `prompt_id` and output `images`. All prompt/style/seed changes are done by you in the JSON beforehand.
+The script reads `COMFYUI_HOST` and `COMFYUI_PORT` from env vars. It queues the workflow, polls for completion, and prints JSON with `prompt_id` and output `images`.
 
-## If the server isn’t reachable
-If the run script fails with a connection error (e.g. connection refused or timeout to 127.0.0.1:8188), ComfyUI may not be installed or not running.
+### 3. Deliver output
+Output images land in `/home/node/.openclaw/workspace/comfyui-output/`. **Always send the generated image(s) to the user** — never just print a filename.
 
-**Check:** Does `~/ComfyUI` exist and contain `main.py`?
+## Model Resolution
 
-- **If not installed:** Install ComfyUI (e.g. clone the repo, create a venv, install dependencies, then start the server). Example:
-  ```bash
-  git clone https://github.com/comfyanonymous/ComfyUI.git ~/ComfyUI
-  cd ~/ComfyUI
-  python3 -m venv venv
-  ~/ComfyUI/venv/bin/pip install -r requirements.txt
-  ```
-  Then start the server (see below). Tell the user they may need to install model weights into `~/ComfyUI/models/` depending on the workflow.
+Models are **not baked into the Docker image**. They're downloaded on first boot by the entrypoint hook.
 
-- **If installed but not running:** Start the ComfyUI server so the API is available on port 8188. Example:
-  ```bash
-  ~/ComfyUI/venv/bin/python ~/ComfyUI/main.py --listen 127.0.0.1
-  ```
-  Run in the background or in a separate terminal so it keeps running. Then retry the workflow run.
+- **Resolver script**: `comfyui-docker/scripts/resolve_models.py`
+- **Override file**: `comfyui-docker/scripts/model-overrides.json` (auto-populated)
+- **Resolution order**: Local overrides → ComfyUI-Manager index (488 models) → HuggingFace API → Civitai API → interactive prompt
+- **Env var**: `RESOLVE_MODELS=true|false` controls auto-download on startup
+- **Manual**: `python3 /scripts/resolve_models.py --workflow <path>` inside the comfyui container
 
-Use `~` (or the user’s home) for paths so it works on their machine.
+### Current models:
+- `checkpoints/AOM3A1_orangemixs.safetensors` — SD 1.5 anime/general (2.13GB)
+- `animatediff_models/v3_sd15_mm.ckpt` — AnimateDiff v3 motion model (1.6GB)
 
-## Model weights from URLs
-When the user pastes or sends a **list of model weight URLs** (one per line, or comma-separated), download those files into the ComfyUI installation so the workflow can use them later.
+## EC2 GPU Deployment
 
-1. **Normalize the list** — one URL per line; strip empty lines and comments (lines starting with `#`).
-2. **Run the download script** with the ComfyUI base path (default `~/ComfyUI`). The script uses [pget](https://github.com/replicate/pget) for parallel downloads when available; if `pget` is not in PATH, it installs it to `~/.local/bin` automatically (no sudo). If pget cannot be installed (e.g. unsupported OS/arch), it falls back to a built-in download. Use the ComfyUI venv Python so the script runs correctly:
-   ```bash
-   ~/ComfyUI/venv/bin/python skills/comfyui/scripts/download_weights.py --base ~/ComfyUI
-   ```
-   Pass URLs as arguments, or pipe a file/list on stdin:
-   ```bash
-   echo "https://example.com/model.safetensors" | ~/ComfyUI/venv/bin/python skills/comfyui/scripts/download_weights.py --base ~/ComfyUI
-   ```
-   Or save the user’s list to a temp file and run:
-   ```bash
-   ~/ComfyUI/venv/bin/python skills/comfyui/scripts/download_weights.py --base ~/ComfyUI < /tmp/weight_urls.txt
-   ```
-   To force the built-in download (no pget): add `--no-pget`.
-3. **Subfolder:** The script infers the ComfyUI models subfolder from the URL/filename (e.g. `vae`, `clip`, `loras`, `checkpoints`, `text_encoders`, `controlnet`, `upscale_models`). The user can optionally specify a subfolder per line as `url subfolder` (e.g. `https://.../model.safetensors vae`). You can also pass a default with `--subfolder loras` so all URLs in that run go to `models/loras/`.
-4. **Existing files:** By default the script skips URLs that already exist on disk; use `--overwrite` to replace.
-5. **Paths:** Files are written under `~/ComfyUI/models/<subfolder>/`. Tell the user where each file was saved and that they can run the workflow once the ComfyUI server is (re)started if needed.
+Managed by `scripts/server-manager.py`:
+```bash
+python3 scripts/server-manager.py launch --name comfyui-gpu --type g4dn.xlarge
+python3 scripts/server-manager.py deploy --name comfyui-gpu
+python3 scripts/server-manager.py stop --name comfyui-gpu    # pause billing
+python3 scripts/server-manager.py start --name comfyui-gpu   # resume
+python3 scripts/server-manager.py terminate --name comfyui-gpu  # destroy
+```
 
-Supported subfolders (under `ComfyUI/models/`): `checkpoints`, `clip`, `clip_vision`, `controlnet`, `diffusion_models`, `embeddings`, `loras`, `text_encoders`, `unet`, `vae`, `vae_approx`, `upscale_models`, and others. Use `--subfolder <name>` when the auto-inference is wrong.
+Server state tracked in `memory/servers.json`.
 
-## After run
-Outputs are saved under `ComfyUI/output/`. Use the `images` list from the script output to locate the files (filename + subfolder).
+When using an EC2 instance, update `COMFYUI_HOST` to the instance's public DNS.
 
-### ⚠️ Always send the output to the user
-After a successful ComfyUI run, **you must deliver the generated image(s) to the user**. Do not reply with only the filename in text or with NO_REPLY.
+## Custom Nodes
 
-1. Parse the script output JSON for `images` (each has `filename`, `subfolder`, `type`).
-2. Build the full path: `ComfyUI/output/` + subfolder + filename (e.g. `ComfyUI/output/z-image_00007_.png`).
-3. **Send the image to the user** via the channel they're on (e.g. use the message/send tool with the image `path` so the user receives the file). Include a short caption if helpful (e.g. "Here you go." or "Tokyo street scene.").
+Installed via `comfyui-docker/Dockerfile`:
+- `ComfyUI-AnimateDiff-Evolved` — animation generation
+- `ComfyUI-VideoHelperSuite` — frame utilities
+- `ComfyUI-KJNodes` — batch processing
 
-Every successful run must result in the user receiving the image. Never leave them with only a filename or no delivery.
+To add more: clone into `comfyui-docker/custom_nodes/` or add git clone to Dockerfile.
+
+## Character Pipeline Integration
+
+Full pipeline for game characters:
+1. **Concept**: Run `character-concept.json` → single 400x400 image
+2. **Animate**: Run `character-animate.json` → 8 frames via AnimateDiff
+3. **Process**: `python3 scripts/character-pipeline.py` → rembg + sprite sheet + metadata JSON
+4. **Unity import**: `ClawCharacterPipeline.cs` → sprite slicing, .anim clips, animator controllers, prefabs
 
 ## Resources
 
 ### scripts/
-- `comfyui_run.py`: Queue a workflow, poll until completion, print `prompt_id` and `images`. No args — you edit the JSON before running.
-- `download_weights.py`: Download model weight URLs into `~/ComfyUI/models/<subfolder>/`. Uses [pget](https://github.com/replicate/pget) when available (installs to `~/.local/bin` if missing); fallback to built-in download. Input: URLs as args or one per line on stdin. Options: `--base`, `--subfolder`, `--overwrite`, `--no-pget`. Infers subfolder from URL/filename when not given.
+- `comfyui_run.py` — Queue workflow, poll completion, print results. Reads `COMFYUI_HOST`/`COMFYUI_PORT` from env.
+- `download_weights.py` — Download model URLs into ComfyUI models dir. Supports `--base`, `--subfolder`, `--overwrite`.
 
 ### assets/
-- `default-workflow.json`: Default workflow. Copy and edit (prompt, style, seed) then run with the edited path; or run as-is for a generic run.
+- `default-workflow.json` — Generic default workflow (from clawhub).
