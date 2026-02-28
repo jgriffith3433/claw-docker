@@ -96,12 +96,26 @@
 - `from-prompt-to-prefab.html` — Feb 28: Full character pipeline walkthrough (concept → prefab)
 
 ## Unity MCP Notes
-- Server name in mcporter: `unity` (not `unity-mcp`)
-- Call format: `mcporter call unity <tool_name> <args>`
-- Console logs: `mcporter call unity get_console_logs error`
+- mcporter server name: `unity` (stdio transport)
+- Call format: `mcporter call unity <tool_name> key=value`
+- Retry wrapper: `bash scripts/unity-call.sh <tool_name> [args]` — retries 3x with 5s delay
+- Console logs: `mcporter call unity get_console_logs logType=error`
 - Connection goes through host.docker.internal:8090
 - **Requires**: Unity Editor running + MCP Unity Server Window → "Allow Remote Connections" checked
-- **Flaky during domain reload**: Connection drops when Unity recompiles scripts, reconnects after
+- **McpServerMonitor.cs**: Editor script that auto-restarts MCP server every 5s if it dies (fixes domain reload issue)
+- **Persistent Bridge** (`scripts/unity-bridge.mjs`): Experimental, has watchdog but reconnection still unreliable. Use stdio bridge for now.
+- **Known issue**: After domain reload, MCP server sometimes stops listening. McpServerMonitor fixes this automatically once compiled.
+
+## Game Definition System — COMPLETE ✅
+- **Architecture doc**: `memory/game-definition-system.md`
+- **Status**: Core system fully built and working
+- **Data layer**: GameDefinition.cs (singleton SO) + all config types (Level, Enemy, Platform, Player, Video, Death, Timeline)
+- **Runtime**: LevelRuntime.cs auto-bootstraps levels, spawns enemies from config, reads PlayerPrefs for level number
+- **Migration done**: GameConfiguration deleted, all refs migrated, 7+ dead files cleaned
+- **MCP tools**: Get Game Stats, Level Summary, Enemy Templates, Player Config, Validate Game, Add Enemy/Level, Set Player Speed/Duration
+- **1 remaining issue**: Level 4 needs music assigned
+- **Deferred**: Scene/timeline generation pipeline, timeline runtime builder, detailed editor panels
+- **MCP Socket Fix**: Local package with 500ms close timeout, survives domain reloads
 
 ## Skill Installation Convention
 - Install skill live with `clawhub install <name>`
