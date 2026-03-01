@@ -108,13 +108,17 @@
 
 ## Game Definition System — COMPLETE ✅
 - **Architecture doc**: `memory/game-definition-system.md`
-- **Status**: Core system fully built and working
-- **Data layer**: GameDefinition.cs (singleton SO) + all config types (Level, Enemy, Platform, Player, Video, Death, Timeline)
-- **Runtime**: LevelRuntime.cs auto-bootstraps levels, spawns enemies from config, reads PlayerPrefs for level number
-- **Migration done**: GameConfiguration deleted, all refs migrated, 7+ dead files cleaned
-- **MCP tools**: Get Game Stats, Level Summary, Enemy Templates, Player Config, Validate Game, Add Enemy/Level, Set Player Speed/Duration
+- **Status**: FULLY BUILT — config-driven everything, no PlayableDirectors, rewind system
+- **Data layer**: GameDefinition.cs (singleton SO) + all config types
+- **Runtimes**: LevelRuntime, VideoRuntime, DeathRuntime — auto-bootstrap, read from config
+- **Experience Layer**: ExperienceRunner with 24 event types, driven by GameClock
+- **Rewind System**: GameClock + StateRecorder + RewindController — time flows forward or backward
+- **SpriteFramePlayer**: Replaces Timeline-based playback, same memory management, GameClock-driven
+- **Scene Generation**: GameBuilder generates all scenes from config, updates Addressables
+- **Enemy Pipeline**: EnemyPrefabGenerator creates prefab + template from sprite sheet
+- **MCP Tools**: 15+ tools for querying/modifying game config and building scenes
+- **Zero PlayableDirectors**: All Timeline assets and PlayableDirector components removed from entire project
 - **1 remaining issue**: Level 4 needs music assigned
-- **Deferred**: Scene/timeline generation pipeline, timeline runtime builder, detailed editor panels
 - **MCP Socket Fix**: Local package with 500ms close timeout, survives domain reloads
 
 ## Skill Installation Convention
